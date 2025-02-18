@@ -314,15 +314,15 @@ void InputSlots(const SlotInfo* slots, int snum)
 
     // Get cursor screen position to be updated by slots as they are rendered.
     ImVec2 pos = ImGui::GetCursorScreenPos();
-
-    // Render input slots
-    ImGui::BeginGroup();
-    {
-        for (int i = 0; i < snum; i++)
-            ImNodes::Ez::Slot(slots[i].title, ImNodes::InputSlotKind(slots[i].kind), pos);
+    if (snum) {
+        // Render input slots
+        ImGui::BeginGroup();
+        {
+            for (int i = 0; i < snum; i++)
+                ImNodes::Ez::Slot(slots[i].title, ImNodes::InputSlotKind(slots[i].kind), pos);
+        }
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
-
     storage->SetFloat(ImGui::GetID("input-width"), ImGui::GetItemRectSize().x);
 
     // Move cursor to the next column
@@ -355,13 +355,14 @@ void OutputSlots(const SlotInfo* slots, int snum)
     ImGui::SetCursorScreenPos(pos);
 
     // Render output slots in the next column
-    ImGui::BeginGroup();
-    {
-        for (int i = 0; i < snum; i++)
-            ImNodes::Ez::Slot(slots[i].title, ImNodes::OutputSlotKind(slots[i].kind), pos);
+    if (snum) {
+        ImGui::BeginGroup();
+        {
+            for (int i = 0; i < snum; i++)
+                ImNodes::Ez::Slot(slots[i].title, ImNodes::OutputSlotKind(slots[i].kind), pos);
+        }
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
-
     storage->SetFloat(ImGui::GetID("output-width"), ImGui::GetItemRectSize().x);
 
     PopStyleVar(2);
