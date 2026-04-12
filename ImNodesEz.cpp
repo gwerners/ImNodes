@@ -180,7 +180,8 @@ bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected)
     ImGui::TextUnformatted(title);
 
     ImGui::SetCursorScreenPos(input_pos);
-
+    ImGui::Dummy(ImVec2(0, 0));
+    ImGui::SetCursorScreenPos(input_pos);
     return result;
 }
 
@@ -327,7 +328,10 @@ void InputSlots(const SlotInfo* slots, int snum)
 
     // Move cursor to the next column
     ImGui::SetCursorScreenPos(ImVec2{storage->GetFloat(ImGui::GetID("content-x")), storage->GetFloat(ImGui::GetID("body-y"))});
-
+    ImVec2 contentPos = ImVec2{storage->GetFloat(ImGui::GetID("content-x")), storage->GetFloat(ImGui::GetID("body-y"))};
+    ImGui::SetCursorScreenPos(contentPos);
+    ImGui::Dummy(ImVec2(0, 0));
+    ImGui::SetCursorScreenPos(contentPos);
     PopStyleVar(2);
 
     // Begin region for node content
@@ -352,6 +356,8 @@ void OutputSlots(const SlotInfo* slots, int snum)
     ImVec2 pos = ImVec2{storage->GetFloat(ImGui::GetID("output-x")), storage->GetFloat(ImGui::GetID("body-y"))};
 
     // Set cursor screen position as it is recorded as the starting point in BeginGroup() for the item rect size.
+    ImGui::SetCursorScreenPos(pos);
+    ImGui::Dummy(ImVec2(0, 0));
     ImGui::SetCursorScreenPos(pos);
 
     // Render output slots in the next column
