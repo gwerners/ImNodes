@@ -182,6 +182,7 @@ bool BeginNode(void* node_id, const char* title, ImVec2* pos, bool* selected)
     ImGui::SetCursorScreenPos(input_pos);
     ImGui::Dummy(ImVec2(0, 0));
     ImGui::SetCursorScreenPos(input_pos);
+
     return result;
 }
 
@@ -327,11 +328,13 @@ void InputSlots(const SlotInfo* slots, int snum)
     storage->SetFloat(ImGui::GetID("input-width"), ImGui::GetItemRectSize().x);
 
     // Move cursor to the next column
-    ImGui::SetCursorScreenPos(ImVec2{storage->GetFloat(ImGui::GetID("content-x")), storage->GetFloat(ImGui::GetID("body-y"))});
+
     ImVec2 contentPos = ImVec2{storage->GetFloat(ImGui::GetID("content-x")), storage->GetFloat(ImGui::GetID("body-y"))};
     ImGui::SetCursorScreenPos(contentPos);
     ImGui::Dummy(ImVec2(0, 0));
     ImGui::SetCursorScreenPos(contentPos);
+
+
     PopStyleVar(2);
 
     // Begin region for node content
