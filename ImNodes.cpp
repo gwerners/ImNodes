@@ -194,7 +194,7 @@ float GetDistanceToLineSquared(const ImVec2& point, const ImVec2& a, const ImVec
     return tx * tx + ty * ty;
 }
 
-bool RenderConnection(const ImVec2& input_pos, const ImVec2& output_pos, float thickness)
+bool RenderConnection(const ImVec2& input_pos, const ImVec2& output_pos, float thickness, ImU32 color = 0, bool dashed = false)
 {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     CanvasState* canvas = gCanvas;
@@ -211,11 +211,40 @@ bool RenderConnection(const ImVec2& input_pos, const ImVec2& output_pos, float t
 #endif
     float min_square_distance = ImFabs(ImLengthSqr(ImGui::GetMousePos() - closest_pt));
     bool is_close = min_square_distance <= thickness * thickness;
+    // If the caller supplied a color override, use it; otherwise fall back
+    // to the theme's active/idle connection colors.
+    ImU32 baseColor = color != 0
+                          ? color
+                          : (ImU32)(is_close ? canvas->Colors[ColConnectionActive]
+                                             : canvas->Colors[ColConnection]);
+    if (!dashed)
+    {
 #if IMGUI_VERSION_NUM < 18000
-    draw_list->AddBezierCurve(input_pos, p2, p3, output_pos, is_close ? canvas->Colors[ColConnectionActive] : canvas->Colors[ColConnection], thickness, 0);
+        draw_list->AddBezierCurve(input_pos, p2, p3, output_pos, baseColor, thickness, 0);
 #else
-    draw_list->AddBezierCubic(input_pos, p2, p3, output_pos, is_close ? canvas->Colors[ColConnectionActive] : canvas->Colors[ColConnection], thickness, 0);
+        draw_list->AddBezierCubic(input_pos, p2, p3, output_pos, baseColor, thickness, 0);
 #endif
+    }
+    else
+    {
+        // Tessellate the cubic and draw alternating segments as dashes.
+        // Fixed segment count keeps the dashing readable at mid/high zoom;
+        // the control points are already zoom-scaled by the caller.
+        const int kSegments = 40;
+        ImVec2 prev = input_pos;
+        for (int i = 1; i <= kSegments; ++i)
+        {
+            float t = (float)i / (float)kSegments;
+#if IMGUI_VERSION_NUM < 18000
+            ImVec2 cur = ImBezierCalc(input_pos, p2, p3, output_pos, t);
+#else
+            ImVec2 cur = ImBezierCubicCalc(input_pos, p2, p3, output_pos, t);
+#endif
+            if ((i & 1) == 1)
+                draw_list->AddLine(prev, cur, baseColor, thickness);
+            prev = cur;
+        }
+    }
     return is_close;
 }
 
@@ -674,7 +703,7 @@ bool GetPendingConnection(void** node_id, const char** slot_title, int* slot_kin
     return false;
 }
 
-bool Connection(void* input_node, const char* input_slot, void* output_node, const char* output_slot)
+bool Connection(void* input_node, const char* input_slot, void* output_node, const char* output_slot, ImU32 color, bool dashed)
 {
     IM_ASSERT(gCanvas != nullptr);
     IM_ASSERT(input_node != nullptr);
@@ -705,7 +734,7 @@ bool Connection(void* input_node, const char* input_slot, void* output_node, con
     input_slot_pos.x += connection_indent;
     output_slot_pos.x -= connection_indent;
 
-    bool curve_hovered = RenderConnection(input_slot_pos, output_slot_pos, canvas->Style.CurveThickness);
+    bool curve_hovered = RenderConnection(input_slot_pos, output_slot_pos, canvas->Style.CurveThickness, color, dashed);
     if (curve_hovered && ImGui::IsWindowHovered())
     {
         if (ImGui::IsMouseDoubleClicked(0))
